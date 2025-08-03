@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>添加内容</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center; align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #fff; padding: 20px; border-radius: 6px;
+      width: 400px; max-width: 80vw;
+    }
+    input, textarea {
+      width: 100%; margin: 10px 0; box-sizing: border-box;
+      font-size: 14px;
+      padding: 6px;
+    }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <button id="addContentBtn">添加内容</button>
+
+  <!-- 文件名输入弹窗 -->
+  <div id="fileNameDialog" class="modal">
+    <div class="modal-content">
+      <h3>请输入HTML文件名（不含后缀）：</h3>
+      <input type="text" id="contentFileName" placeholder="文件名" />
+      <button id="fileNameNextBtn">下一步</button>
+      <button id="cancelFileNameBtn">取消</button>
+    </div>
+  </div>
+
+  <!-- 标题输入弹窗 -->
+  <div id="titleDialog" class="modal">
+    <div class="modal-content">
+      <h3>请输入标题：</h3>
+      <input type="text" id="contentTitle" placeholder="标题" />
+      <button id="titleNextBtn">下一步</button>
+      <button id="cancelTitleBtn">取消</button>
+    </div>
+  </div>
+
+  <!-- 内容输入弹窗 -->
+  <div id="bodyDialog" class="modal">
+    <div class="modal-content">
+      <h3>请输入内容：</h3>
+      <textarea id="contentBody" rows="10" placeholder="内容"></textarea>
+      <button id="submitContentBtn">提交</button>
+      <button id="cancelBodyBtn">取消</button>
+    </div>
+  </div>
+
+<script>
+  const addContentBtn = document.getElementById('addContentBtn');
+
+  const fileNameDialog = document.getElementById('fileNameDialog');
+  const titleDialog = document.getElementById('titleDialog');
+  const bodyDialog = document.getElementById('bodyDialog');
+
+  const fileNameNextBtn = document.getElementById('fileNameNextBtn');
+  const cancelFileNameBtn = document.getElementById('cancelFileNameBtn');
+
+  const titleNextBtn = document.getElementById('titleNextBtn');
+  const cancelTitleBtn = document.getElementById('cancelTitleBtn');
+
+  const submitContentBtn = document.getElementById('submitContentBtn');
+  const cancelBodyBtn = document.getElementById('cancelBodyBtn');
+
+  let currentFileName = '';
+  let currentTitle = '';
+
+  // 点击添加内容按钮，打开文件名弹窗
+  addContentBtn.addEventListener('click', () => {
+    document.getElementById('contentFileName').value = '';
+    fileNameDialog.style.display = 'flex';
+  });
+
+  // 文件名弹窗“下一步”按钮
+  fileNameNextBtn.addEventListener('click', () => {
+    const fileName = document.getElementById('contentFileName').value.trim();
+    if (!fileName) {
+      alert('文件名不能为空');
+      return;
+    }
+    // 简单非法字符检测（Windows 文件名禁止字符）
+    if(/[\\\/:*?"<>|]/.test(fileName)) {
+      alert('文件名包含非法字符');
+      return;
+    }
+    currentFileName = fileName;
+    fileNameDialog.style.display = 'none';
+
+    document.getElementById('contentTitle').value = '';
+    titleDialog.style.display = 'flex';
+  });
+
+  cancelFileNameBtn.addEventListener('click', () => {
+    fileNameDialog.style.display = 'none';
+  });
+
+  // 标题弹窗“下一步”按钮
+  titleNextBtn.addEventListener('click', () => {
+    const title = document.getElementById('contentTitle').value.trim();
+    if (!title) {
+      alert('标题不能为空');
+      return;
+    }
+    currentTitle = title;
+    titleDialog.style.display = 'none';
+
+    document.getElementById('contentBody').value = '';
+    bodyDialog.style.display = 'flex';
+  });
+
+  cancelTitleBtn.addEventListener('click', () => {
+    titleDialog.style.display = 'none';
+  });
+
+  // 内容弹窗“提交”按钮
+  submitContentBtn.addEventListener('click', () => {
+    const content = document.getElementById('contentBody').value.trim();
+    if (!content) {
+      alert('内容不能为空');
+      return;
+    }
+
+    fetch('/save-html', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: currentFileName,
+        title: currentTitle,
+        content: content
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || '添加成功');
+      bodyDialog.style.display = 'none';
+    })
+    .catch(err => {
+      console.error(err);
+      alert('提交失败，请查看控制台');
+    });
+  });
+
+  cancelBodyBtn.addEventListener('click', () => {
+    bodyDialog.style.display = 'none';
+  });
+</script>
+
+</body>
+</html>
