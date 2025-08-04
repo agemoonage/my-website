@@ -47,6 +47,10 @@ app.post('/upload', upload.single('file'), (req, res) => {
   res.json({ message: '上传成功', file: req.file.filename });
 });
 
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // 文本保存为HTML接口
 app.post('/save-html', (req, res) => {
   const { fileName, title, content } = req.body;
