@@ -31,6 +31,7 @@
 
       <!-- 添加内容按钮 -->
       <button id="addContentBtn" type="button" style="margin-top: 20px;">添加内容</button>
+      <button id="downloadBtn">下载归档文件</button>
     </aside>
 
     <main class="content">
@@ -122,6 +123,10 @@
     alert('请求失败，请查看控制台');
   }
 });
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    window.location.href = '/download-archive';
+  });
   </script>
 </body>
 </html>

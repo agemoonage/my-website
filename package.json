@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/agemoonage/my-website#readme",
   "dependencies": {
+    "archiver": "^7.0.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "multer": "^2.0.2"
