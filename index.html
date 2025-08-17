@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的知识库</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>分类导航</h2>
+      <ul>
+        <li><a href="public/machine/index.html">机械类</a></li>
+        <li><a href="public/software/index.html">软件类</a></li>
+        <li><a href="public/electronic/index.html">电子类</a></li>
+        <li><a href="public/common/index.html">常用</a></li>
+        <li><a href="public/archive/index.html">待归档内容</a></li>
+      </ul>
+
+      <h2>常用网站</h2>
+      <ul>
+        <li><a href="https://agemoonage.github.io/my-website/" target="_blank" rel="noopener">个人主页</a></li>
+        <li><a href="https://www.bilibili.com" target="_blank" rel="noopener">b站</a></li>
+        <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+
+      <button id="uploadBtn" type="button">上传文档</button>
+      <input type="file" id="fileInput" style="display: none" />
+      <button id="addContentBtn" type="button" style="margin-top: 20px;">添加内容</button>
+    </aside>
+
+    <main class="content">
+      <h1>欢迎来到我的知识库</h1>
+      <p>记录、分类与整理所学的知识。</p>
+      <ul>
+        <li><a href="common.html">常用知识点集合</a></li>
+      </ul>
+    </main>
+  </div>
+
+  <script>
+    // 上传文件功能
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadBtn.addEventListener('click', () => {
+      fileInput.value = null;
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return alert('请选择文件');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/upload', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => alert(data.message || '上传成功'))
+        .catch(err => {
+          console.error('上传错误:', err);
+          alert('上传失败，请查看控制台');
+        });
+    });
+
+    // 添加内容按钮功能
+    const addContentBtn = document.getElementById('addContentBtn');
+    addContentBtn.addEventListener('click', async () => {
+      let fileName = prompt('请输入HTML文件名（不含后缀）:');
+      if (!fileName) return alert('文件名不能为空');
+      fileName = fileName.trim().replace(/[\\\/:*?"<>|]/g, '_');
+      if (!fileName) return alert('文件名包含非法字符或为空');
+
+      let title = prompt('请输入网页标题:');
+      if (!title) return alert('标题不能为空');
+
+      let content = prompt('请输入网页内容:');
+      if (!content) return alert('内容不能为空');
+
+      try {
+        const res = await fetch('/save-html', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName, title, content })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('保存成功！文件路径：' + data.path);
+        } else {
+          alert('保存失败：' + (data.message || '未知错误'));
+        }
+      } catch (err) {
+        console.error('请求失败:', err);
+        alert('请求失败，请查看控制台');
+      }
+    });
+  </script>
+</body>
+</html>
