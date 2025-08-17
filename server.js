@@ -3,10 +3,8 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const config = require('./config.js');
 const OSS = require('ali-oss');
-
-// 引入本地配置文件（确保 .gitignore 忽略它）
+const config = require('./config.js'); // <-- 引入本地配置文件
 
 const app = express();
 const PORT = 3000;
@@ -24,6 +22,8 @@ const archiveDir = path.join(__dirname, 'public/archive');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 静态资源映射
 app.use('/uploads', express.static(uploadDir));
 app.use('/public', express.static('public'));
 app.use(express.static('public'));
@@ -87,7 +87,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: '未收到文件' });
 
   try {
-    const url = await uploadToOSS(req.file.path, `uploads/${req.file.filename}`);
+    const url = await uploadToOSS(req.file.path, `public/uploads/${req.file.filename}`);
     res.json({ message: '上传成功', file: req.file.filename, url });
   } catch (err) {
     res.status(500).json({ message: '上传 OSS 失败', error: err.message });
@@ -97,6 +97,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 // -------------------- 保存文本为 HTML --------------------
 app.post('/save-html', (req, res) => {
   const { fileName, title, content } = req.body;
+
   if (!fileName || !title || !content) {
     return res.status(400).json({ message: '参数缺失' });
   }
@@ -121,7 +122,7 @@ app.post('/save-html', (req, res) => {
 
     try {
       updateArchiveIndex();
-      const url = await uploadToOSS(filePath, `archive/${safeFileName}`);
+      const url = await uploadToOSS(filePath, `public/archive/${safeFileName}`);
       res.json({ message: `文件已保存为 ${safeFileName}`, path: `/public/archive/${safeFileName}`, url });
     } catch (ossErr) {
       res.status(500).json({ message: 'OSS 上传失败', error: ossErr.message });

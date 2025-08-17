@@ -25,8 +25,11 @@
         <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
       </ul>
 
+      <!-- 上传按钮 -->
       <button id="uploadBtn" type="button">上传文档</button>
       <input type="file" id="fileInput" style="display: none" />
+
+      <!-- 添加内容按钮 -->
       <button id="addContentBtn" type="button" style="margin-top: 20px;">添加内容</button>
     </aside>
 
@@ -36,6 +39,9 @@
       <ul>
         <li><a href="common.html">常用知识点集合</a></li>
       </ul>
+
+      <h2>归档内容（GitHub Pages 可自动读取 OSS）</h2>
+      <ul id="archiveList"></ul>
     </main>
   </div>
 
@@ -66,12 +72,9 @@
     });
 
     // 添加内容按钮功能
-    const addContentBtn = document.getElementById('addContentBtn');
-    addContentBtn.addEventListener('click', async () => {
+    document.getElementById('addContentBtn').addEventListener('click', async () => {
       let fileName = prompt('请输入HTML文件名（不含后缀）:');
       if (!fileName) return alert('文件名不能为空');
-      fileName = fileName.trim().replace(/[\\\/:*?"<>|]/g, '_');
-      if (!fileName) return alert('文件名包含非法字符或为空');
 
       let title = prompt('请输入网页标题:');
       if (!title) return alert('标题不能为空');
@@ -86,8 +89,10 @@
           body: JSON.stringify({ fileName, title, content })
         });
         const data = await res.json();
+
         if (res.ok) {
           alert('保存成功！文件路径：' + data.path);
+          loadArchiveFromOSS(); // 保存后刷新列表
         } else {
           alert('保存失败：' + (data.message || '未知错误'));
         }
@@ -96,6 +101,32 @@
         alert('请求失败，请查看控制台');
       }
     });
+
+    // GitHub Pages 使用 OSS 公网 URL 自动读取归档文件列表
+    async function loadArchiveFromOSS() {
+      const ossBucketUrl = 'https://agemoon.oss-cn-shenzhen.aliyuncs.com/public/archive/';
+      const listJsonUrl = ossBucketUrl + 'list.json'; // 需要在 OSS 上生成 list.json 文件
+
+      try {
+        const res = await fetch(listJsonUrl);
+        const files = await res.json(); // ['file1.html', 'file2.html', ...]
+        const ul = document.getElementById('archiveList');
+        ul.innerHTML = '';
+        files.forEach(f => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = ossBucketUrl + f;
+          a.target = '_blank';
+          a.textContent = f.replace('.html','');
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        console.warn('无法加载 OSS 文件列表，可能在本地环境', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadArchiveFromOSS);
   </script>
 </body>
 </html>
